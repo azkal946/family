@@ -1,637 +1,646 @@
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pohon Silsilah Keluarga</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --cream: #faf6ee;
-    --bark: #3b2a1a;
-    --bark-mid: #5c3d26;
-    --bark-light: #8c6340;
-    --leaf: #4a7c59;
-    --leaf-light: #6aaa7a;
-    --shadow: rgba(59,42,26,0.18);
-  }
+:root {
+  --gold: #b8934a;
+  --gold-lt: #ddb96a;
+  --cream: #faf6ee;
+  --bark: #3b2a1a;
+  --bark-mid: #6b4c30;
+  --bark-lt: #9a7050;
+  --green: #4a7c59;
+  --line: #c9a87a;
+  --card-bg: #ffffff;
+  --shadow: 0 4px 24px rgba(59,42,26,0.10);
+}
 
-  body {
-    font-family: 'Cormorant Garamond', serif;
-    background: var(--cream);
-    min-height: 100vh;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+html { scroll-behavior: smooth; }
 
-  /* Decorative background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 10%, rgba(201,168,76,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba(74,124,89,0.08) 0%, transparent 50%),
-      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--cream);
+  min-height: 100vh;
+  overflow-x: auto;
+}
 
-  header {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 3rem 1rem 1.5rem;
-  }
+/* ── BG texture ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 10%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(74,124,89,0.07) 0%, transparent 60%);
+  pointer-events: none;
+}
 
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    color: var(--bark);
-    letter-spacing: 0.04em;
-    line-height: 1.2;
-  }
+/* ── Header ── */
+header {
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+}
+header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  color: var(--bark);
+  letter-spacing: 0.03em;
+}
+header h1 em { color: var(--gold); font-style: italic; }
+header p {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--bark-lt);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ornament {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.6rem; margin: 0.8rem auto 0; width: 200px;
+  color: var(--gold); font-size: 0.8rem;
+}
+.ornament::before,.ornament::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-lt));
+}
+.ornament::after { background: linear-gradient(to left, transparent, var(--gold-lt)); }
 
-  header h1 span {
-    color: var(--gold);
-    font-style: italic;
-  }
+/* ── Main scroll area ── */
+#scroll-wrap {
+  position: relative; z-index: 1;
+  overflow-x: auto;
+  padding: 0 2rem 4rem;
+  min-height: 400px;
+}
 
-  header p {
-    margin-top: 0.5rem;
-    font-size: 1rem;
-    color: var(--bark-light);
-    font-weight: 300;
-    letter-spacing: 0.08em;
-  }
+/* ── Tree canvas ── */
+#tree-canvas {
+  position: relative;
+  margin: 0 auto;
+  /* width set by JS */
+}
 
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    justify-content: center;
-    margin: 0.8rem auto 0;
-    width: 220px;
-  }
+/* SVG for lines */
+#tree-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
 
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--gold));
-  }
-  .divider::after { background: linear-gradient(to left, transparent, var(--gold)); }
+/* ── Node card ── */
+.node {
+  position: absolute;
+  background: var(--card-bg);
+  border: 1.5px solid var(--gold-lt);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  cursor: default;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  overflow: hidden;
+}
 
-  .divider-icon {
-    font-size: 1rem;
-    color: var(--gold);
-  }
+.node.clickable { cursor: pointer; }
 
-  /* Tree container */
-  #tree {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 900px;
-    padding: 1rem 1rem 4rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+.node.clickable:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 36px rgba(184,147,74,0.22);
+  border-color: var(--gold);
+}
 
-  /* Generation row */
-  .gen-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    animation: fadeDown 0.5s ease both;
-  }
+.node.root-node {
+  background: linear-gradient(145deg, #fffdf8, #fff8ec);
+  border-color: var(--gold);
+}
 
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+/* Top accent bar */
+.node-bar {
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold-lt), var(--gold), var(--gold-lt));
+}
 
-  /* Couple wrapper */
-  .couple-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.4rem;
-  }
+.node-inner { padding: 0.9rem 1.2rem 1rem; }
 
-  .heart-icon {
-    font-size: 1.1rem;
-    color: #c94c4c;
-    animation: pulse 2s infinite;
-    user-select: none;
-  }
+/* Couple layout */
+.couple-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  border: 2px solid var(--gold-lt);
+  flex-shrink: 0;
+}
+.avatar.m { background: linear-gradient(135deg,#ddeeff,#aaccee); }
+.avatar.f { background: linear-gradient(135deg,#ffdde6,#ffaabb); }
 
-  @keyframes pulse {
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(1.2); }
-  }
+.heart { color: #c94c4c; font-size: 0.95rem; line-height: 1; }
 
-  /* Person card */
-  .person-card {
-    position: relative;
-    background: white;
-    border: 1.5px solid var(--gold-light);
-    border-radius: 14px;
-    padding: 1rem 1.6rem;
-    cursor: pointer;
-    transition: all 0.28s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 2px 16px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.9);
-    min-width: 130px;
-    text-align: center;
-    user-select: none;
-  }
+.names { text-align: center; }
+.name1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  color: var(--bark);
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.name2 {
+  font-size: 0.78rem;
+  color: var(--bark-mid);
+  font-weight: 300;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.amp {
+  font-size: 0.7rem;
+  color: var(--bark-lt);
+  font-style: italic;
+  margin-top: 1px;
+}
 
-  .person-card::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--gold-light), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.28s;
-    pointer-events: none;
-  }
+/* child-only name (compact) */
+.single-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  color: var(--bark);
+  font-weight: 700;
+}
+.single-sub {
+  font-size: 0.72rem;
+  color: var(--bark-lt);
+  margin-top: 2px;
+}
 
-  .person-card:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 32px rgba(201,168,76,0.22), 0 2px 8px var(--shadow);
-    border-color: var(--gold);
-  }
+/* badge */
+.badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--cream);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
 
-  .person-card:hover::before { opacity: 0.25; }
+/* expand hint */
+.expand-hint {
+  font-size: 0.68rem;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  margin-top: 0.35rem;
+  opacity: 0.8;
+}
 
-  .person-card.has-children:hover .expand-hint { opacity: 1; }
+/* gen label above rows */
+.gen-label {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bark-lt);
+  white-space: nowrap;
+  font-weight: 700;
+}
 
-  .person-card.couple-container {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    cursor: default;
-    background: linear-gradient(135deg, #fffdf7, white);
-    min-width: 260px;
-  }
+/* ── Animation ── */
+.node { opacity: 0; animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1) forwards; }
+@keyframes popIn {
+  from { opacity:0; transform: scale(0.85) translateY(-10px); }
+  to   { opacity:1; transform: scale(1)    translateY(0); }
+}
 
-  .couple-names {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.1rem;
-  }
-
-  .name-main {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.05rem;
-    color: var(--bark);
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    line-height: 1.2;
-  }
-
-  .name-sub {
-    font-size: 0.78rem;
-    color: var(--bark-light);
-    font-weight: 300;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  /* Single clickable person (child, expandable) */
-  .person-card.clickable .name-main { color: var(--bark); }
-
-  .expand-hint {
-    font-size: 0.7rem;
-    color: var(--gold);
-    margin-top: 0.25rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-    letter-spacing: 0.04em;
-  }
-
-  .person-card.has-children .expand-hint { opacity: 0.6; }
-
-  /* Avatar circle */
-  .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    flex-shrink: 0;
-    border: 2px solid var(--gold-light);
-  }
-
-  .avatar.male   { background: linear-gradient(135deg, #ddeeff, #aaccee); }
-  .avatar.female { background: linear-gradient(135deg, #ffdde6, #ffaabb); }
-
-  /* Connector lines */
-  .connector {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  .line-v {
-    width: 2px;
-    height: 36px;
-    background: linear-gradient(to bottom, var(--gold-light), var(--bark-mid));
-    border-radius: 1px;
-  }
-
-  .line-h-wrap {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    position: relative;
-  }
-
-  .children-row {
-    display: flex;
-    gap: 2.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-  }
-
-  .children-row::before {
-    content: '';
-    position: absolute;
-    top: -36px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 100px);
-    height: 2px;
-    background: linear-gradient(to right, transparent, var(--bark-mid), transparent);
-  }
-
-  .child-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-
-  .child-col::before {
-    content: '';
-    position: absolute;
-    top: -36px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 36px;
-    background: linear-gradient(to bottom, var(--bark-mid), var(--gold-light));
-  }
-
-  /* Children subtree */
-  .subtree {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  /* Leaf decorations */
-  .leaf-deco {
-    position: fixed;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.07;
-    font-size: 6rem;
-    user-select: none;
-  }
-
-  .leaf-deco.tl { top: 2%; left: 1%; transform: rotate(-30deg); }
-  .leaf-deco.tr { top: 2%; right: 1%; transform: rotate(30deg) scaleX(-1); }
-  .leaf-deco.bl { bottom: 5%; left: 1%; transform: rotate(30deg); }
-  .leaf-deco.br { bottom: 5%; right: 1%; transform: rotate(-30deg) scaleX(-1); }
-
-  /* Generation label */
-  .gen-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--bark-light);
-    margin-bottom: 0.6rem;
-    font-weight: 500;
-  }
-
-  /* Tooltip badge */
-  .badge-children {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: var(--leaf);
-    color: white;
-    font-size: 0.6rem;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    border: 2px solid white;
-    box-shadow: 0 2px 6px var(--shadow);
-  }
-
-  footer {
-    position: relative;
-    z-index: 1;
-    padding: 1rem;
-    color: var(--bark-light);
-    font-size: 0.8rem;
-    letter-spacing: 0.06em;
-    opacity: 0.7;
-    text-align: center;
-  }
+footer {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.75rem;
+  color: var(--bark-lt);
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
 </style>
 </head>
 <body>
 
-<!-- Leaf decorations -->
-<div class="leaf-deco tl">🌿</div>
-<div class="leaf-deco tr">🌿</div>
-<div class="leaf-deco bl">🍃</div>
-<div class="leaf-deco br">🍃</div>
-
 <header>
-  <h1>Pohon Silsilah <span>Keluarga</span></h1>
+  <h1>Pohon Silsilah <em>Keluarga</em></h1>
   <p>Klik nama untuk melihat keturunannya</p>
-  <div class="divider"><span class="divider-icon">✦</span></div>
+  <div class="ornament">✦</div>
 </header>
 
-<div id="tree"></div>
+<div id="scroll-wrap">
+  <div id="tree-canvas">
+    <svg id="tree-svg"></svg>
+  </div>
+</div>
 
-<footer>✦ Klik pada kartu nama untuk membuka cabang keluarga ✦</footer>
+<footer>✦ Klik kartu untuk membuka cabang keluarga ✦</footer>
 
 <script>
-// ============================================================
-//  DATA POHON KELUARGA — edit di sini sesuai keluargamu
-// ============================================================
-const familyData = {
-  id: "root",
-  husband: { name: "Djamaliah", gender: "male", born: "1950" },
-  wife:    { name: "kake",   gender: "female", born: "1953" },
+// ═══════════════════════════════════════════════
+//  DATA KELUARGA — edit di sini
+// ═══════════════════════════════════════════════
+const DATA = {
+  id: 'root',
+  husband: { name: 'Djamaliah', born: '1950' },
+  wife:    { name: 'Kake' },
   children: [
     {
-      id: "c1",
-      husband: { name: "Feby Mardianti",  gender: "male",   born: "1975" },
-      wife:    { name: "Iwan Hermawan",  gender: "female", born: "1977" },
+      id: 'c1',
+      husband: { name: 'Feby Mardianti', born: '1975' },
+      wife:    { name: 'Iwan Hermawan' },
       children: [
         {
-          id: "c1a",
-          husband: { name: "Muhammad Ganesh Musyafa Arias Tama",  gender: "male",   born: "2000" },
-          wife:    { name: "Gadis",    gender: "female", born: "2002" },
+          id: 'c1a',
+          husband: { name: 'Muhammad Ganesh Musyafa Arias Tama', born: '2000' },
+          wife:    { name: 'Gadis' },
           children: []
         },
         {
-          id: "c1b",
-          husband: { name: "Muhammad Azkal Azkiya",  gender: "male",   born: "2003" },
-          wife:    { name: "gakada",     gender: "female", born: "2005" },
+          id: 'c1b',
+          husband: { name: 'Muhammad Azkal Azkiya', born: '2003' },
+          wife:    { name: '-' },
           children: []
         }
       ]
     },
     {
-      id: "c2",
-      husband: { name: "Diane Utami",   gender: "male",   born: "1978" },
-      wife:    { name: "Ari Irawan",gender: "female", born: "1980" },
+      id: 'c2',
+      husband: { name: 'Diane Utami', born: '1978' },
+      wife:    { name: 'Ari Irawan' },
       children: [
         {
-          id: "c2a",
-          husband: { name: "Ardian Fatiha",  gender: "male",   born: "2005" },
-          wife:    { name: "Kosong",    gender: "female", born: "2006" },
+          id: 'c2a',
+          husband: { name: 'Ardian Fatiha', born: '2005' },
+          wife:    { name: '-' },
           children: []
-        },
+        }
       ]
     },
     {
-      id: "c3",
-      husband: { name: "Vien",   gender: "male",   born: "1978" },
-      wife:    { name: "Hari Kuntoro",gender: "female", born: "1980" },
+      id: 'c3',
+      husband: { name: 'Vien', born: '1978' },
+      wife:    { name: 'Hari Kuntoro' },
       children: [
         {
-          id: "c3a",
-          husband: { name: "Nadine",  gender: "male",   born: "2005" },
-          wife:    { name: "Kosong",    gender: "female", born: "2006" },
+          id: 'c3a',
+          husband: { name: 'Nadine', born: '2005' },
+          wife:    { name: '-' },
           children: []
         },
-         {
-          id: "c3b",
-          husband: { name: "Nabila",  gender: "male",   born: "2005" },
-          wife:    { name: "Kosong",    gender: "female", born: "2006" },
+        {
+          id: 'c3b',
+          husband: { name: 'Nabila', born: '2005' },
+          wife:    { name: '-' },
           children: []
         },
-         {
-          id: "c3c",
-          husband: { name: "Nadia",  gender: "male",   born: "2005" },
-          wife:    { name: "Kosong",    gender: "female", born: "2006" },
+        {
+          id: 'c3c',
+          husband: { name: 'Nadia', born: '2005' },
+          wife:    { name: '-' },
           children: []
-        },
+        }
       ]
     },
     {
-      id: "c4",
-      husband: { name: "Nia Silviana",   gender: "male",   born: "1978" },
-      wife:    { name: "Ferry Suhendar",gender: "female", born: "1980" },
+      id: 'c4',
+      husband: { name: 'Nia Silviana', born: '1978' },
+      wife:    { name: 'Ferry Suhendar' },
       children: [
         {
-          id: "c4a",
-          husband: { name: "Ibrahim Alfaiz Leonel Negara",  gender: "male",   born: "2005" },
-          wife:    { name: "-",    gender: "female", born: "2006" },
+          id: 'c4a',
+          husband: { name: 'Ibrahim Alfaiz Leonel Negara', born: '2005' },
+          wife:    { name: '-' },
           children: []
         },
-         {
-          id: "c4b",
-          husband: { name: "Ismail",  gender: "male",   born: "2005" },
-          wife:    { name: "-",    gender: "female", born: "2006" },
+        {
+          id: 'c4b',
+          husband: { name: 'Ismail', born: '2005' },
+          wife:    { name: '-' },
           children: []
-        },
+        }
       ]
     }
   ]
 };
-// ============================================================
+// ═══════════════════════════════════════════════
 
-// State: which nodes are expanded
+// ── Layout constants ──
+const NODE_W   = 220;
+const NODE_H_ROOT = 110;
+const NODE_H_COUPLE = 100;
+const NODE_H_SINGLE = 76;
+const H_GAP    = 60;   // vertical gap between rows
+const V_GAP    = 24;   // horizontal gap between siblings
+
+// Track which nodes are expanded
 const expanded = new Set();
 
-function genLabel(depth) {
-  const labels = ["Generasi Pertama", "Generasi Kedua", "Generasi Ketiga", "Generasi Keempat"];
-  return labels[depth] || `Generasi ke-${depth + 1}`;
+// ── Entry ──
+function render() {
+  const canvas = document.getElementById('tree-canvas');
+  const svg    = document.getElementById('tree-svg');
+  canvas.querySelectorAll('.node, .gen-label').forEach(e => e.remove());
+  svg.innerHTML = '';
+
+  // Build visible tree structure (only expanded paths)
+  const rows = buildRows(DATA, 0);
+  const totalHeight = computeHeight(rows);
+  const totalWidth  = computeWidth(rows);
+
+  canvas.style.width  = totalWidth  + 'px';
+  canvas.style.height = totalHeight + 'px';
+
+  // Assign positions
+  positionRows(rows, totalWidth);
+
+  // Draw nodes & lines
+  drawRows(rows, canvas, svg);
 }
 
-function renderNode(node, depth) {
-  const el = document.createElement('div');
-  el.className = 'gen-row';
-  el.style.animationDelay = (depth * 0.08) + 's';
+// Build flat row list
+function buildRows(node, depth) {
+  // Row 0: root couple
+  // Row 1: its children (compact)
+  // If a child is expanded → add that child's full couple card + its children
 
-  // Generation label
-  const label = document.createElement('div');
-  label.className = 'gen-label';
-  label.textContent = genLabel(depth);
-  el.appendChild(label);
+  const rows = [];
 
-  // Couple card
-  const couple = document.createElement('div');
-  couple.className = 'person-card couple-container';
+  function walk(n, d) {
+    // Full couple row
+    rows.push({ type: 'couple', node: n, depth: d, children: [] });
+    const coupleRow = rows[rows.length - 1];
 
-  const avatarH = document.createElement('div');
-  avatarH.className = 'avatar male';
-  avatarH.textContent = '👨';
+    if (n.children && n.children.length > 0) {
+      // Children preview row
+      const childRow = { type: 'children', nodes: n.children, depth: d + 1, parentRow: coupleRow };
+      rows.push(childRow);
+      coupleRow.childRow = childRow;
 
-  const names = document.createElement('div');
-  names.className = 'couple-names';
-
-  const nameH = document.createElement('div');
-  nameH.className = 'name-main';
-  nameH.textContent = node.husband.name;
-
-  const separator = document.createElement('div');
-  separator.style.cssText = 'font-size:1rem;color:#c94c4c;margin:0.1rem 0;';
-  separator.textContent = '❤';
-
-  const nameW = document.createElement('div');
-  nameW.className = 'name-main';
-  nameW.textContent = node.wife.name;
-
-  const subLabel = document.createElement('div');
-  subLabel.className = 'name-sub';
-  subLabel.textContent = `menikah · ${node.husband.born}`;
-
-  names.appendChild(nameH);
-  names.appendChild(separator);
-  names.appendChild(nameW);
-  names.appendChild(subLabel);
-
-  const avatarW = document.createElement('div');
-  avatarW.className = 'avatar female';
-  avatarW.textContent = '👩';
-
-  couple.appendChild(avatarH);
-  couple.appendChild(names);
-  couple.appendChild(avatarW);
-  el.appendChild(couple);
-
-  // If has children, show expand connector + children
-  if (node.children && node.children.length > 0) {
-    const connector = document.createElement('div');
-    connector.className = 'connector';
-
-    const lineV = document.createElement('div');
-    lineV.className = 'line-v';
-    connector.appendChild(lineV);
-
-    el.appendChild(connector);
-
-    // Children row
-    const childrenRow = document.createElement('div');
-    childrenRow.className = 'children-row';
-
-    node.children.forEach(child => {
-      const childCol = document.createElement('div');
-      childCol.className = 'child-col';
-
-      // Child name button
-      const childCard = document.createElement('div');
-      childCard.className = 'person-card clickable' + (child.children.length > 0 ? ' has-children' : '');
-
-      if (child.children.length > 0) {
-        const badge = document.createElement('div');
-        badge.className = 'badge-children';
-        badge.textContent = child.children.length;
-        childCard.appendChild(badge);
-      }
-
-      // Show both husband & wife in compact form
-      const cH = document.createElement('div');
-      cH.className = 'name-main';
-      cH.textContent = child.husband.name;
-
-      const cSep = document.createElement('div');
-      cSep.style.cssText = 'font-size:0.8rem;color:#c94c4c;margin:1px 0;';
-      cSep.textContent = '& ' + child.wife.name;
-      cSep.style.color = '#8c6340';
-      cSep.style.fontSize = '0.78rem';
-      cSep.style.fontWeight = '300';
-
-      const hint = document.createElement('div');
-      hint.className = 'expand-hint';
-      hint.textContent = child.children.length > 0
-        ? `▾ ${child.children.length} anak`
-        : '· pasangan ·';
-
-      childCard.appendChild(cH);
-      childCard.appendChild(cSep);
-      childCard.appendChild(hint);
-      childCol.appendChild(childCard);
-
-      // Subtree (hidden by default unless expanded)
-      const subtree = document.createElement('div');
-      subtree.className = 'subtree';
-      subtree.style.display = 'none';
-      childCol.appendChild(subtree);
-
-      // Toggle expand
-      if (child.children.length > 0) {
-        childCard.addEventListener('click', () => {
-          const isOpen = expanded.has(child.id);
-          if (isOpen) {
-            expanded.delete(child.id);
-            subtree.innerHTML = '';
-            subtree.style.display = 'none';
-            hint.textContent = `▾ ${child.children.length} anak`;
-            childCard.style.borderColor = '';
-          } else {
-            expanded.add(child.id);
-            subtree.style.display = 'flex';
-            subtree.style.flexDirection = 'column';
-            subtree.style.alignItems = 'center';
-
-            // vertical line down to child subtree
-            const vLine = document.createElement('div');
-            vLine.className = 'line-v';
-            subtree.appendChild(vLine);
-
-            const childNode = renderNode(child, depth + 1);
-            subtree.appendChild(childNode);
-            hint.textContent = `▴ tutup`;
-            childCard.style.borderColor = 'var(--gold)';
-          }
-        });
-      }
-
-      childrenRow.appendChild(childCol);
-    });
-
-    el.appendChild(childrenRow);
+      // For each expanded child, recurse
+      n.children.forEach(child => {
+        if (expanded.has(child.id) && child.children && child.children.length > 0) {
+          walk(child, d + 1);
+        }
+      });
+    }
   }
 
+  walk(node, depth);
+  return rows;
+}
+
+function computeHeight(rows) {
+  let y = 60; // top padding for gen label
+  rows.forEach(row => {
+    y += rowHeight(row) + H_GAP;
+  });
+  return y + 40;
+}
+
+function rowHeight(row) {
+  if (row.type === 'couple') return NODE_H_COUPLE;
+  if (row.type === 'children') return NODE_H_SINGLE;
+  return NODE_H_COUPLE;
+}
+
+function computeWidth(rows) {
+  let max = 0;
+  rows.forEach(row => {
+    let w;
+    if (row.type === 'children') {
+      w = row.nodes.length * NODE_W + (row.nodes.length - 1) * V_GAP;
+    } else {
+      w = NODE_W;
+    }
+    if (w > max) max = w;
+  });
+  return Math.max(max + 120, 500);
+}
+
+function positionRows(rows, totalWidth) {
+  let y = 60;
+  rows.forEach(row => {
+    row.y = y;
+    if (row.type === 'couple') {
+      row.x = (totalWidth - NODE_W) / 2;
+    } else if (row.type === 'children') {
+      const totalW = row.nodes.length * NODE_W + (row.nodes.length - 1) * V_GAP;
+      row.startX = (totalWidth - totalW) / 2;
+      row.nodeXs = row.nodes.map((_, i) => row.startX + i * (NODE_W + V_GAP));
+    }
+    y += rowHeight(row) + H_GAP;
+  });
+}
+
+function drawRows(rows, canvas, svg) {
+  const genLabels = {};
+
+  rows.forEach((row, ri) => {
+    if (row.type === 'couple') {
+      // Gen label
+      const depth = row.depth;
+      if (!genLabels[depth]) {
+        genLabels[depth] = true;
+        const lbl = document.createElement('div');
+        lbl.className = 'gen-label';
+        lbl.style.top = (row.y - 24) + 'px';
+        lbl.textContent = genName(depth);
+        canvas.appendChild(lbl);
+      }
+
+      const el = makeCoupleCard(row.node, row.depth === 0);
+      el.style.left = row.x + 'px';
+      el.style.top  = row.y + 'px';
+      el.style.width = NODE_W + 'px';
+      el.style.animationDelay = (ri * 0.04) + 's';
+      canvas.appendChild(el);
+      row.el = el;
+
+    } else if (row.type === 'children') {
+      row.nodes.forEach((child, ci) => {
+        const el = makeChildCard(child);
+        el.style.left  = row.nodeXs[ci] + 'px';
+        el.style.top   = row.y + 'px';
+        el.style.width = NODE_W + 'px';
+        el.style.animationDelay = (ri * 0.04 + ci * 0.06) + 's';
+        canvas.appendChild(el);
+        row.nodes[ci]._el = el;
+        row.nodes[ci]._x  = row.nodeXs[ci];
+
+        if (child.children && child.children.length > 0) {
+          el.classList.add('clickable');
+          el.addEventListener('click', () => {
+            if (expanded.has(child.id)) {
+              expanded.delete(child.id);
+            } else {
+              expanded.add(child.id);
+            }
+            render();
+            // Scroll to keep clicked card visible
+            setTimeout(() => {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
+          });
+        }
+      });
+
+      // Draw lines: parent couple → H-bar → each child
+      const parentRow = rows.find(r => r.type === 'couple' && r.childRow === row);
+      if (parentRow) {
+        const px = parentRow.x + NODE_W / 2;
+        const py = parentRow.y + NODE_H_COUPLE;
+        const midY = row.y - H_GAP / 2;
+
+        // Vertical from parent bottom to mid
+        drawLine(svg, px, py, px, midY);
+
+        if (row.nodes.length === 1) {
+          // Single child: straight down
+          const cx = row.nodeXs[0] + NODE_W / 2;
+          drawLine(svg, cx, midY, cx, row.y);
+        } else {
+          // Horizontal bar
+          const leftX  = row.nodeXs[0] + NODE_W / 2;
+          const rightX = row.nodeXs[row.nodes.length - 1] + NODE_W / 2;
+          drawLine(svg, leftX, midY, rightX, midY);
+
+          // Drop to each child
+          row.nodeXs.forEach(cx => {
+            const childMidX = cx + NODE_W / 2;
+            drawLine(svg, childMidX, midY, childMidX, row.y);
+          });
+        }
+      }
+    }
+  });
+}
+
+function drawLine(svg, x1, y1, x2, y2) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+  line.setAttribute('stroke', '#c9a87a');
+  line.setAttribute('stroke-width', '2');
+  line.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(line);
+}
+
+function makeCoupleCard(node, isRoot) {
+  const el = document.createElement('div');
+  el.className = 'node' + (isRoot ? ' root-node' : '');
+
+  const bar = document.createElement('div');
+  bar.className = 'node-bar';
+  el.appendChild(bar);
+
+  const inner = document.createElement('div');
+  inner.className = 'node-inner';
+
+  const row = document.createElement('div');
+  row.className = 'couple-row';
+
+  const avH = document.createElement('div');
+  avH.className = 'avatar m'; avH.textContent = '👨';
+
+  const names = document.createElement('div');
+  names.className = 'names';
+
+  const n1 = document.createElement('div');
+  n1.className = 'name1'; n1.textContent = node.husband.name;
+
+  const h = document.createElement('div');
+  h.className = 'heart'; h.textContent = '♥';
+
+  const n2 = document.createElement('div');
+  n2.className = 'name1'; n2.textContent = node.wife.name;
+
+  const sub = document.createElement('div');
+  sub.className = 'amp';
+  sub.textContent = node.husband.born ? `menikah · ${node.husband.born}` : 'pasangan';
+
+  names.appendChild(n1);
+  names.appendChild(h);
+  names.appendChild(n2);
+  names.appendChild(sub);
+
+  const avW = document.createElement('div');
+  avW.className = 'avatar f'; avW.textContent = '👩';
+
+  row.appendChild(avH);
+  row.appendChild(names);
+  row.appendChild(avW);
+  inner.appendChild(row);
+  el.appendChild(inner);
   return el;
 }
 
-function init() {
-  const tree = document.getElementById('tree');
-  tree.innerHTML = '';
-  const root = renderNode(familyData, 0);
-  tree.appendChild(root);
+function makeChildCard(node) {
+  const el = document.createElement('div');
+  el.className = 'node';
+
+  const bar = document.createElement('div');
+  bar.className = 'node-bar';
+  el.appendChild(bar);
+
+  const inner = document.createElement('div');
+  inner.className = 'node-inner';
+
+  const n1 = document.createElement('div');
+  n1.className = 'single-name'; n1.textContent = node.husband.name;
+
+  const amp = document.createElement('div');
+  amp.className = 'amp'; amp.textContent = '& ' + node.wife.name;
+
+  inner.appendChild(n1);
+  inner.appendChild(amp);
+
+  const hasKids = node.children && node.children.length > 0;
+  if (hasKids) {
+    const hint = document.createElement('div');
+    hint.className = 'expand-hint';
+    hint.textContent = expanded.has(node.id)
+      ? '▴ tutup'
+      : `▾ ${node.children.length} anak`;
+    inner.appendChild(hint);
+
+    // Badge
+    const badge = document.createElement('div');
+    badge.className = 'badge';
+    badge.textContent = node.children.length;
+    el.appendChild(badge);
+  }
+
+  el.appendChild(inner);
+  return el;
 }
 
-init();
+function genName(d) {
+  const g = ['Generasi Pertama','Generasi Kedua','Generasi Ketiga','Generasi Keempat','Generasi Kelima'];
+  return g[d] || `Generasi ke-${d+1}`;
+}
+
+// Initial render
+render();
 </script>
 </body>
 </html>
